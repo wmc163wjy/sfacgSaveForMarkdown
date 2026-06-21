@@ -33,48 +33,6 @@ const launchBrowser = async () => {
   return puppeteer.launch(launchOptions);
 };
 
-// 登录函数
-const loginToSFACG = async (page) => {
-  try {
-    console.log('正在访问SF轻小说网站...');
-    await page.goto(`${baseUrl}`, {
-      waitUntil: 'networkidle2',
-      timeout: 60000
-    });
-
-    // 检查是否已登录
-    const isLoggedIn = await page.evaluate(() => {
-      const userInfo = document.querySelector('.user-info') || document.querySelector('.my-account');
-      return !!userInfo;
-    });
-
-    if (isLoggedIn) {
-      console.log('✓ 已登录');
-      return true;
-    }
-
-    console.log('未检测到登录状态，请在浏览器中手动登录...');
-    console.log('按照以下步骤操作：');
-    console.log('1. 浏览器窗口已打开，请手动登录你的SF轻小说账户');
-    console.log('2. 登录完成后，程序会自动继续');
-    
-    // 等待用户手动登录（最多 5 分钟）
-    await page.waitForFunction(
-      () => {
-        const userInfo = document.querySelector('.user-info') || document.querySelector('.my-account');
-        return !!userInfo;
-      },
-      { timeout: 300000 }
-    );
-
-    console.log('✓ 登录成功');
-    return true;
-  } catch (error) {
-    console.warn('登录检测失败，继续尝试下载...');
-    return false;
-  }
-};
-
 const getChapters = async (page, bookPageUrl) => {
   const targetUrl = new URL(bookPageUrl, baseUrl).toString();
 
@@ -240,10 +198,6 @@ const getStore = async () => {
   try {
     browser = await launchBrowser();
     const page = await browser.newPage();
-    
-    // 先进行登录
-    await loginToSFACG(page);
-    
     const chapters = await getChapters(page, `/Novel/${bookUid}/MainIndex/`);
     await page.close();
 
